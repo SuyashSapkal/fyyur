@@ -30,10 +30,22 @@ migrate = Migrate(app, db)
 #----------------------------------------------------------------------------#
 # Models.
 #----------------------------------------------------------------------------#
-association_table = db.Table('association',
+'''shows = db.Table('shows',
+    db.Column('id', db.Integer, primary_key=True),
+    db.Column('start_time', db.DateTime),
     db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id'), primary_key=True),
     db.Column('venue', db.Integer, db.ForeignKey('Venue.id'), primary_key=True)
-)
+)'''
+
+class Shows(db.Model):
+  __tablename__='Shows'
+
+  id=db.Column(db.Integer, primary_key=True)
+  start_time=db.Column(db.DateTime)
+  venue_id=db.Column(db.Integer, db.ForeignKey('Venue.id'))
+  artist_id=db.Column(db.Integer, db.ForeignKey('Artist.id'))
+  Venue=db.relationship('Venue',backref='Shows',lazy=True)
+  Artist=db.relationship('Artist',backref='Shows',lazy=True)
 
 
 class Venue(db.Model):
@@ -47,7 +59,7 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    artist = db.relationship('artist', secondary=association_table, lazy='subquery', backref=db.backref('Venue', lazy=True))
+    shows = db.relationship('Artist', secondary=Shows,backref='Venue',lazy=True)
 
     
 
@@ -64,12 +76,13 @@ class Artist(db.Model):
     genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    shows = db.relationship('Venue', secondary=Shows,backref='Artist',lazy=True)
     
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
-
+"""
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
@@ -100,7 +113,7 @@ def index():
 def venues():
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
+  '''data=[{
     "city": "San Francisco",
     "state": "CA",
     "venues": [{
@@ -120,8 +133,9 @@ def venues():
       "name": "The Dueling Pianos Bar",
       "num_upcoming_shows": 0,
     }]
-  }]
-  return render_template('pages/venues.html', areas=data);
+  }]'''
+
+  return render_template('pages/venues.html', areas=data)
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
@@ -533,3 +547,4 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
 '''
+"""
