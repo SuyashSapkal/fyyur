@@ -257,7 +257,7 @@ def create_venue_form():
 def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
-  form=VenueForm(request.form)
+  form=VenueForm(request.form, csrf_enabled=False)
   if form.validate():
     try:
       venue=Venue(
@@ -269,9 +269,9 @@ def create_venue_submission():
         image_link=form.image_link.data,
         facebook_link=form.facebook_link.data
       )
+      form.populate_obj(venue)
       db.session.add(venue)
       db.session.commit()
-      flash('')
     # on successful db insert, flash success
       flash('Venue ' + request.form['name'] + ' was successfully listed!')
     except:
