@@ -13,7 +13,6 @@ from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
 from flask_migrate import Migrate
-
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -23,20 +22,12 @@ moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
 
-migrate = Migrate(app, db)
-
+migrate=Migrate(app,db)
 # TODO: connect to a local postgresql database
 
 #----------------------------------------------------------------------------#
 # Models.
 #----------------------------------------------------------------------------#
-'''shows = db.Table('shows',
-    db.Column('id', db.Integer, primary_key=True),
-    db.Column('start_time', db.DateTime),
-    db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id'), primary_key=True),
-    db.Column('venue', db.Integer, db.ForeignKey('Venue.id'), primary_key=True)
-)'''
-
 class Shows(db.Model):
   __tablename__='Shows'
 
@@ -44,9 +35,8 @@ class Shows(db.Model):
   start_time=db.Column(db.DateTime)
   venue_id=db.Column(db.Integer, db.ForeignKey('Venue.id'))
   artist_id=db.Column(db.Integer, db.ForeignKey('Artist.id'))
-  venue=db.relationship('Venue',backref='Shows',lazy=True)
-  artist=db.relationship('Artist',backref='Shows',lazy=True)
-
+  venue=db.relationship('Venue',backref='shows_venue',lazy=True)
+  artist=db.relationship('Artist',backref='shows_artist',lazy=True)
 
 class Venue(db.Model):
     __tablename__ = 'Venue'
@@ -64,10 +54,7 @@ class Venue(db.Model):
     seeking_talent = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(120))
     
-    shows = db.relationship('Artist', secondary=Shows,backref='Venue',lazy=True)
-
-    
-
+    shows = db.relationship('Shows', backref='Venue', lazy=True)
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 class Artist(db.Model):
@@ -86,9 +73,7 @@ class Artist(db.Model):
     seeking_venue = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(120))
 
-    shows = db.relationship('Venue', secondary=Shows,backref='Artist',lazy=True)
-    
-
+    shows = db.relationship('Shows', backref='Artist', lazy=True)    
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
@@ -144,7 +129,7 @@ def venues():
       "num_upcoming_shows": 0,
     }]
   }]
-  return render_template('pages/venues.html', areas=data)
+  return render_template('pages/venues.html', areas=data);
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
@@ -255,8 +240,6 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
   form=VenueForm(request.form, csrf_enabled=False)
   if form.validate():
     try:
@@ -272,7 +255,6 @@ def create_venue_submission():
       form.populate_obj(venue)
       db.session.add(venue)
       db.session.commit()
-    # on successful db insert, flash success
       flash('Venue ' + request.form['name'] + ' was successfully listed!')
     except ValueError as e:
       print(e)
@@ -284,10 +266,7 @@ def create_venue_submission():
     message = []
     for field, err in form.errors.items():
         message.append(field + ' ' + '|'.join(err))
-    flash('Errors ' + str(message))
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+    flash('Errors ' + str(message))  
   return render_template('pages/home.html')
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
