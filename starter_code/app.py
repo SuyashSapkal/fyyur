@@ -340,13 +340,9 @@ def create_show_submission():
   form=ShowForm(request.form, csrf_enabled=False)
   if form.validate():
     try:
-      shows=Shows(
-        artist_id=form.artist_id.data,
-        venue_id=form.venue_id.data,
-        start_time=form.start_time.data,
-      )
-      form.populate_obj(shows)
-      db.session.add(shows)
+      show=Shows()
+      form.populate_obj(show)
+      db.session.add(show)
       db.session.commit()
       flash('Show ' + request.form['name'] + ' was successfully listed!')
     except ValueError as e:
