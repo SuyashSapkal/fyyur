@@ -309,123 +309,105 @@ def show_artist(artist_id):
 #  Update
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
-  artist = Artist.query.first_or_404(artist_id)
-  form = ArtistForm(obj=artist)
-  return render_template(
-      'forms/edit_artist.html',
-      form=form,
-      artist=artist
-  )
+def edit_artist(artist_id):
+  form = ArtistForm()
+  artist = Artist.query.get(artist_id)
+
+  if artist: 
+    form.name.data = artist.name
+    form.city.data = artist.city
+    form.state.data = artist.state
+    form.phone.data = artist.phone
+    form.genres.data = artist.genres
+    form.facebook_link.data = artist.facebook_link
+    #form.image_link.data = artist.image_link
+    #form.website.data = artist.website
+    #form.seeking_venue.data = artist.seeking_venue
+    #form.seeking_description.data = artist.seeking_description
+
+  return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-  artist = Artist.query.first_or_404(artist_id)
-  form=ArtistForm(request.form, csrf_enabled=False)
-  if form.validate():
-    try:
-      form.populate_obj(artist)
-      db.session.add(artist)
-      db.session.commit()
-      flash('Artist ' + request.form['name'] + ' was successfully edited!')
-    except ValueError as e:
-      print(e)
-      flash('Artist ' + request.form['name'] + ' editing was unsuccessful!')
-      db.session.rollback()
-    finally:
-      db.session.close()
-  else:
-    message = []
-    for field, err in form.errors.items():
-        message.append(field + ' ' + '|'.join(err))
-    flash('Errors ' + str(message))  
-  return render_template('pages/home.html')
+  error = False  
+  artist = Artist.query.get(artist_id)
+
+  try: 
+    artist.name = request.form['name']
+    artist.city = request.form['city']
+    artist.state = request.form['state']
+    artist.phone = request.form['phone']
+    artist.genres = request.form.getlist('genres')
+    #artist.image_link = request.form['image_link']
+    artist.facebook_link = request.form['facebook_link']
+    #artist.website = request.form['website']
+    #artist.seeking_venue = True if 'seeking_venue' in request.form else False 
+    #artist.seeking_description = request.form['seeking_description']
+
+    db.session.commit()
+  except: 
+    error = True
+    db.session.rollback()
+    print(sys.exc_info())
+  finally: 
+    db.session.close()
+  if error: 
+    flash('An error occurred. Artist could not be changed.')
+  if not error: 
+    flash('Artist was successfully updated!')
+  return redirect(url_for('show_artist', artist_id=artist_id))
+
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
   form = VenueForm()
   venue = Venue.query.get(venue_id)
-  if not venue:
-    # User typed in a URL that doesn't exist, redirect home
-    return redirect(url_for('index'))
-  else:
-    # Otherwise, valid venue.  We can prepopulate the form with existing data like this:
-    form = VenueForm(obj=venue)  
-  venue = {
-    "id": venue_id,
-    "name": venue.name,
-    "genres": venue.genres,
-    "address": venue.address,
-    "city": venue.city,
-    "state": venue.state,
-    "phone": venue.phone,
-    "website": venue.website,
-    "facebook_link": venue.facebook_link,
-    "seeking_talent": venue.seeking_talent,
-    "seeking_description": venue.seeking_description,
-    "image_link": venue.image_link
-    }
 
-  # TODO: populate form with values from venue with ID <venue_id>
+  if venue: 
+    form.name.data = venue.name
+    form.city.data = venue.city
+    form.state.data = venue.state
+    form.phone.data = venue.phone
+    form.address.data = venue.address
+    form.genres.data = venue.genres
+    form.facebook_link.data = venue.facebook_link
+    #form.image_link.data = venue.image_link
+    #form.website.data = venue.website
+    #form.seeking_talent.data = venue.seeking_talent
+    #form.seeking_description.data = venue.seeking_description
+
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-  # TODO: take values from the form submitted, and update existing
-  # venue record with ID <venue_id> using the new attributes
-  form = VenueForm()
-  name = form.name.data.strip()
-  city = form.city.data.strip()
-  state = form.state.data
-  address = form.address.data.strip()
-  phone = form.phone.data
-  genres = form.genres.data
-  seeking_talent = True if form.seeking_talent.data == 'Yes' else False
-  seeking_description = form.seeking_description.data.strip()
-  image_link = form.image_link.data.strip()
-  website = form.website.data.strip()
-  facebook_link = form.facebook_link.data.strip()
+  error = False  
+  venue = Venue.query.get(venue_id)
 
-  if not form.validate():
-    flash( form.errors )
-    return redirect(url_for('edit_venue_submission', venue_id=venue_id))
+  try: 
+    venue.name = request.form['name']
+    venue.city = request.form['city']
+    venue.state = request.form['state']
+    venue.address = request.form['address']
+    venue.phone = request.form['phone']
+    venue.genres = request.form.getlist('genres')
+    #venue.image_link = request.form['image_link']
+    venue.facebook_link = request.form['facebook_link']
+    #venue.website = request.form['website']
+    #venue.seeking_talent = True if 'seeking_talent' in request.form else False 
+    #venue.seeking_description = request.form['seeking_description']
 
-  else:
-    error_in_update = False
-    try:
-      venue = Venue.query.get(venue_id)
-      venue.name = name
-      venue.city = city
-      venue.state = state
-      venue.address = address
-      venue.phone = phone
-      venue.seeking_talent = seeking_talent
-      venue.seeking_description = seeking_description
-      venue.image_link = image_link
-      venue.website = website
-      venue.facebook_link = facebook_link
-      venue.genres = []
-      for genre in genres:
-        fetch_genre = Genre.query.filter_by(name=genre).one_or_none()
-        if fetch_genre:
-          venue.genres.append(fetch_genre)
-        else:
-          new_genre = Genre(name=genre)
-          db.session.add(new_genre)
-          venue.genres.append(new_genre)  # Create a new Genre item and append it      
-    except Exception as e:
-      error_in_update = True
-      print(f'Exception "{e}" in edit_venue_submission()')
-      db.session.rollback()
-    finally:
-            db.session.close()
-    if not error_in_update:
-      flash('Venue ' + request.form['name'] + ' was successfully updated!')
-      return redirect(url_for('show_venue', venue_id=venue_id))
-    else:
-      flash('An error occurred. Venue ' + name + ' could not be updated.')
-      print("Error in edit_venue_submission()")
-      abort(500)
-
+    db.session.commit()
+  except: 
+    error = True
+    db.session.rollback()
+    print(sys.exc_info())
+  finally: 
+    db.session.close()
+  if error: 
+    flash(f'An error occurred. Venue could not be changed.')
+  if not error: 
+    flash(f'Venue was successfully updated!')
+  return redirect(url_for('show_venue', venue_id=venue_id))
 
       
   return redirect(url_for('show_venue', venue_id=venue_id))
