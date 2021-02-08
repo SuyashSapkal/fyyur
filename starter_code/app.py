@@ -326,7 +326,17 @@ def shows():
   # displays list of shows at /shows
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=Shows.query.all()
+  data=[]
+  shows=Shows.query.all()
+  for show in shows:
+    data.append({
+              "venue_id": show.venue.id,
+              "venue_name": show.venue.name,
+              "artist_id": show.artist.id,
+              "artist_name": show.artist.name,
+              "artist_image_link": show.artist.image_link,
+              "start_time": format_datetime(str(show.start_time))
+          })
   return render_template('pages/shows.html', shows=data)
 
 @app.route('/shows/create')
@@ -344,10 +354,10 @@ def create_show_submission():
       form.populate_obj(show)
       db.session.add(show)
       db.session.commit()
-      flash('Show ' + request.form['name'] + ' was successfully listed!')
+      flash('Show was successfully listed!')
     except ValueError as e:
       print(e)
-      flash('Show ' + request.form['name'] + ' listing was unsuccessful!')
+      flash('Show listing was unsuccessful!')
       db.session.rollback()
     finally:
       db.session.close()
