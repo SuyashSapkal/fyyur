@@ -137,8 +137,51 @@ def search_venues():
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
+  venue = Venue.query.get(venue_id)
+  if not venue:
+    return redirect(url_for('index'))
+  else:
+    past_shows = []
+    past_shows_count = 0
+    upcoming_shows = []
+    upcoming_shows_count = 0
+    now = datetime.now()
+    for show in venue.shows:
+      if show.start_time > now:
+        upcoming_shows_count += 1
+        upcoming_shows.append({
+          "artist_id": show.artist_id,
+          "artist_name": show.artist.name,
+          "artist_image_link": show.artist.image_link,
+          "start_time": format_datetime(str(show.start_time))
+        })
+      if show.start_time < now:
+        past_shows_count += 1
+        past_shows.append({
+          "artist_id": show.artist_id,
+          "artist_name": show.artist.name,
+          "artist_image_link": show.artist.image_link,
+          "start_time": format_datetime(str(show.start_time))
+        })          
+    data = {
+      "id": venue_id,
+      "name": venue.name,
+      "genres": venue.genres,
+      "address": venue.address,
+      "city": venue.city,
+      "state": venue.state,
+      "phone": venue.phone,
+      "website": venue.website,
+      "facebook_link": venue.facebook_link,
+      "seeking_talent": venue.seeking_talent,
+      "seeking_description": venue.seeking_description,
+      "image_link": venue.image_link,
+      "past_shows": past_shows,
+      "past_shows_count": past_shows_count,
+      "upcoming_shows": upcoming_shows,
+      "upcoming_shows_count": upcoming_shows_count
+    }
 
-  data =Venue.query.filter_by(id=venue_id)
   return render_template('pages/show_venue.html', venue=data)
 
 #  Create Venue
@@ -184,29 +227,6 @@ def create_venue_submission():
 def delete_venue(venue_id):
   # TODO: Complete this endpoint for taking a venue_id, and using
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
-    venue = Venue.query.get(venue_id)   # Returns object by primary key, or None
-    
-    if not venue:
-        # Didn't return one, user must've hand-typed a link into the browser that doesn't exist
-        # Redirect home
-        return redirect(url_for('index'))
-    else:
-        data = {
-          "id": venue.id,
-            "name": venue.name,
-            "genres": venue.genres,
-            "address": venue.address,
-            "city": venue.city,
-            "state": venue.state,
-            "phone": venue.phone,
-            "website": venue.website,
-            "facebook_link": venue.facebook_link,
-            "seeking_talent": venue.seeking_talent,
-            "seeking_description": venue.seeking_description,
-            "image_link": venue.image_link
-            
-        }
-        return render_template('pages/show_venue.html', venue=data)
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
  
