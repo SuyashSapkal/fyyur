@@ -198,17 +198,13 @@ def delete_venue(venue_id):
             "address": venue.address,
             "city": venue.city,
             "state": venue.state,
-            # Put the dashes back into phone number
             "phone": venue.phone,
             "website": venue.website,
             "facebook_link": venue.facebook_link,
             "seeking_talent": venue.seeking_talent,
             "seeking_description": venue.seeking_description,
             "image_link": venue.image_link
-            #"past_shows": past_shows,
-            #"past_shows_count": past_shows_count,
-            #"upcoming_shows": upcoming_shows,
-            #"upcoming_shows_count": upcoming_shows_count'''
+            
         }
         return render_template('pages/show_venue.html', venue=data)
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
