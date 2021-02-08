@@ -243,10 +243,29 @@ def search_artists():
 def show_artist(artist_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
-  
-  data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
-  return render_template('pages/show_artist.html', artist=data)
-
+    artist = Artist.query.get(artist_id)   # Returns object by primary key, or None
+    
+    if not artist:
+        # Didn't return one, user must've hand-typed a link into the browser that doesn't exist
+        # Redirect home
+        return redirect(url_for('index'))
+    else:
+        data = {
+          "id": artist.id,
+            "name": artist.name,
+            "genres": artist.genres,
+            "address": artist.address,
+            "city": artist.city,
+            "state": artist.state,
+            "phone": artist.phone,
+            "website": artist.website,
+            "facebook_link": artist.facebook_link,
+            "seeking_venue": artist.seeking_venue,
+            "seeking_description": artist.seeking_description,
+            "image_link": artist.image_link
+            
+        }
+        return render_template('pages/show_venue.html', venue=data)
 #  Update
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
