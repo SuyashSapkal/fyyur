@@ -5,7 +5,7 @@
 import json
 import dateutil.parser
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for
+from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
@@ -223,10 +223,30 @@ def create_venue_submission():
     flash('Errors ' + str(message))  
   return render_template('pages/home.html')
 
-@app.route('/venues/<venue_id>', methods=['DELETE'])
+@app.route('/venues/<venue_id>/delete', methods=['GET'])
 def delete_venue(venue_id):
   # TODO: Complete this endpoint for taking a venue_id, and using
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
+  venue = Venue.query.get(venue_id)
+  if not venue:
+    return redirect(url_for('index'))
+  else:
+    error_on_delete = False
+    venue_name = venue.name
+    try:
+      db.session.delete(venue)
+      db.session.commit()
+    except:
+      error_on_delete = True
+      db.session.rollback()
+    finally:
+      db.session.close()
+    if error_on_delete:
+      flash(f'An error occurred deleting venue {venue_name}.')
+      print("Error in delete_venue()")
+      abort(500)
+    else:
+      return jsonify({'deleted': True,'url': url_for('venues')})
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
  
@@ -290,20 +310,24 @@ def show_artist(artist_id):
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
-  form = ArtistForm()
-  artist={
-    "id": 4,
-    "name": "Guns N Petals",
-    "genres": ["Rock n Roll"],
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "326-123-5000",
-    "website": "https://www.gunsnpetalsband.com",
-    "facebook_link": "https://www.facebook.com/GunsNPetals",
-    "seeking_venue": True,
-    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-    "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
-  }
+  artist = Artist.query.get(artist_id)
+  if not artist:
+    return redirect(url_for('index'))
+  else:
+    form = ArtistForm(obj=artist)
+    artist = {
+      "id": artist_id,
+      "name": artist.name,
+      "genres": artist.genres,
+      "city": artist.city,
+      "state": artist.state,
+      "phone": artist.phone,
+      "website": artist.website,
+      "facebook_link": artist.facebook_link,
+      "seeking_venue": artist.seeking_venue,
+      "seeking_description": artist.seeking_description,
+      "image_link": artist.image_link
+    }
   # TODO: populate form with fields from artist with ID <artist_id>
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
@@ -311,8 +335,61 @@ def edit_artist(artist_id):
 def edit_artist_submission(artist_id):
   # TODO: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
+  form = ArtistForm()
+  name = form.name.data.strip()
+  city = form.city.data.strip()
+  state = form.state.data
+  phone = form.phone.data
+  genres = form.genres.data
+  seeking_venue = True if form.seeking_venue.data == 'Yes' else False
+  seeking_description = form.seeking_description.data.strip()
+  image_link = form.image_link.data.strip()
+  website = form.website.data.strip()
+  facebook_link = form.facebook_link.data.strip()
 
-  return redirect(url_for('show_artist', artist_id=artist_id))
+  if not form.validate():
+    flash( form.errors )
+    return redirect(url_for('edit_artist_submission', artist_id=artist_id))
+
+  else:
+    error_in_update = False  
+  try:
+    artist = Artist.query.get(artist_id)
+    artist.name = name
+    artist.city = city
+    artist.state = state
+    artist.phone = phone
+    artist.seeking_venue = seeking_venue
+    artist.seeking_description = seeking_description
+    artist.image_link = image_link
+    artist.website = website
+    artist.facebook_link = facebook_link
+    artist.genres = []
+    for genre in genres:
+      fetch_genre = Genre.query.filter_by(name=genre).one_or_none()
+      if fetch_genre:
+        artist.genres.append(fetch_genre)
+      else:
+        new_genre = Genre(name=genre)
+        db.session.add(new_genre)
+        artist.genres.append(new_genre)  
+    db.session.commit()
+  
+  except Exception as e:
+    error_in_update = True
+    print(f'Exception "{e}" in edit_artist_submission()')
+    db.session.rollback()
+  
+  finally:
+    db.session.close()
+
+  if not error_in_update:
+    flash('Artist ' + request.form['name'] + ' was successfully updated!')
+    return redirect(url_for('show_artist', artist_id=artist_id))
+  else:
+    flash('An error occurred. Artist ' + name + ' could not be updated.')
+    print("Error in edit_artist_submission()")
+    abort(500)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
