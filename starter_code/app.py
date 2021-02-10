@@ -300,10 +300,10 @@ def edit_artist(artist_id):
     form.phone.data = artist.phone
     form.genres.data = artist.genres
     form.facebook_link.data = artist.facebook_link
-    #form.image_link.data = artist.image_link
-    #form.website.data = artist.website
-    #form.seeking_venue.data = artist.seeking_venue
-    #form.seeking_description.data = artist.seeking_description
+    form.image_link.data = artist.image_link
+    form.website.data = artist.website
+    form.seeking_venue.data = artist.seeking_venue
+    form.seeking_description.data = artist.seeking_description
 
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
@@ -318,11 +318,11 @@ def edit_artist_submission(artist_id):
     artist.state = request.form['state']
     artist.phone = request.form['phone']
     artist.genres = request.form.getlist('genres')
-    #artist.image_link = request.form['image_link']
+    artist.image_link = request.form['image_link']
     artist.facebook_link = request.form['facebook_link']
-    #artist.website = request.form['website']
-    #artist.seeking_venue = True if 'seeking_venue' in request.form else False 
-    #artist.seeking_description = request.form['seeking_description']
+    artist.website = request.form['website']
+    artist.seeking_venue = True if 'seeking_venue' in request.form else False 
+    artist.seeking_description = request.form['seeking_description']
 
     db.session.commit()
   except: 
@@ -335,7 +335,7 @@ def edit_artist_submission(artist_id):
     flash('An error occurred. Artist could not be changed.')
   if not error: 
     flash('Artist was successfully updated!')
-  return redirect(url_for('show_artist', artist_id=artist_id))
+  return redirect(url_for('shows_artist', artist_id=artist_id))
 
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])

@@ -197,6 +197,9 @@ class ArtistForm(Form):
             ('WY', 'WY'),
         ]
     )
+    address = StringField(
+        'address', validators=[DataRequired()]
+    )
     phone = StringField(
         # TODO implement validation logic for state
         'phone', validators=[DataRequired()]
@@ -233,5 +236,13 @@ class ArtistForm(Form):
         # TODO implement enum restriction
         'facebook_link', validators=[URL()]
     )
-
+    website = StringField(
+        'website', validators=[URL(),DataRequired()]
+    )
+    seeking_venue = BooleanField(
+        'seeking_venue'
+    )
+    seeking_description = StringField(
+        'seeking_description'
+    )
 # TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM
