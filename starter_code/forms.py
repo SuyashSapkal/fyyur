@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask_wtf import Form
-from wtforms import IntegerField, StringField, SelectField, SelectMultipleField, DateTimeField
+from wtforms import IntegerField, StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField
 from wtforms.validators import NumberRange, DataRequired, AnyOf, URL
 
 class ShowForm(Form):
@@ -91,10 +91,10 @@ class VenueForm(Form):
         'address', validators=[DataRequired()]
     )
     phone = StringField(
-        'phone'
+        'phone', validators=[DataRequired()]
     )
     image_link = StringField(
-        'image_link'
+        'image_link', validators=[DataRequired()]
     )
     genres = SelectMultipleField(
         # TODO implement enum restriction
@@ -122,7 +122,16 @@ class VenueForm(Form):
         ]
     )
     facebook_link = StringField(
-        'facebook_link', validators=[URL()]
+        'facebook_link', validators=[URL(),DataRequired()]
+    )
+    website = StringField(
+        'website', validators=[URL(),DataRequired()]
+    )
+    seeking_talent = BooleanField(
+        'seeking_talent'
+    )
+    seeking_description = StringField(
+        'seeking_description'
     )
 
 class ArtistForm(Form):
@@ -190,10 +199,10 @@ class ArtistForm(Form):
     )
     phone = StringField(
         # TODO implement validation logic for state
-        'phone'
+        'phone', validators=[DataRequired()]
     )
     image_link = StringField(
-        'image_link'
+        'image_link', validators=[DataRequired()]
     )
     genres = SelectMultipleField(
         # TODO implement enum restriction

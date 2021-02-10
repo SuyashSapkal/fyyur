@@ -158,7 +158,8 @@ def create_venue_submission():
         address=form.address.data,
         phone=form.phone.data,
         image_link=form.image_link.data,
-        facebook_link=form.facebook_link.data
+        facebook_link=form.facebook_link.data,
+        website=form.website.data
       )
       form.populate_obj(venue)
       db.session.add(venue)
