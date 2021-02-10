@@ -6,7 +6,16 @@ import json
 from models import db, Shows, Venue, Artist
 import dateutil.parser
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify
+from flask import (
+  Flask, 
+  render_template, 
+  request, 
+  Response, 
+  flash, 
+  redirect, 
+  url_for, 
+  jsonify
+)
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
@@ -54,10 +63,31 @@ def index():
 
 @app.route('/venues')
 def venues():
-  # TODO: replace with real venues data.
-  #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=Venue.query.all()
-  return render_template('pages/venues.html', areas=data)
+    # Querying for cites and states of all venues and unique them
+    areas = db.session.query(Venue.city, Venue.state).distinct(Venue.city, Venue.state)
+    response = []
+    for area in areas:
+
+        # Querying venues and filter them based on area (city, venue)
+        result = Venue.query.filter(Venue.state == area.state).filter(Venue.city == area.city).all()
+
+        venue_data = []
+
+        # Creating venues' response
+        for venue in result:
+            venue_data.append({
+                'id': venue.id,
+                'name': venue.name,
+                'num_upcoming_shows': len(db.session.query(Shows).filter(Shows.start_time > datetime.now()).all())
+            })
+
+            response.append({
+                'city': area.city,
+                'state': area.state,
+                'venues': venue_data
+            })
+
+    return render_template('pages/venues.html', areas=response)
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
