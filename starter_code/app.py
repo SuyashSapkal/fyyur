@@ -351,10 +351,10 @@ def edit_venue(venue_id):
     form.address.data = venue.address
     form.genres.data = venue.genres
     form.facebook_link.data = venue.facebook_link
-    #form.image_link.data = venue.image_link
-    #form.website.data = venue.website
-    #form.seeking_talent.data = venue.seeking_talent
-    #form.seeking_description.data = venue.seeking_description
+    form.image_link.data = venue.image_link
+    form.website.data = venue.website
+    form.seeking_talent.data = venue.seeking_talent
+    form.seeking_description.data = venue.seeking_description
 
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
@@ -370,11 +370,11 @@ def edit_venue_submission(venue_id):
     venue.address = request.form['address']
     venue.phone = request.form['phone']
     venue.genres = request.form.getlist('genres')
-    #venue.image_link = request.form['image_link']
+    venue.image_link = request.form['image_link']
     venue.facebook_link = request.form['facebook_link']
-    #venue.website = request.form['website']
-    #venue.seeking_talent = True if 'seeking_talent' in request.form else False 
-    #venue.seeking_description = request.form['seeking_description']
+    venue.website = request.form['website']
+    venue.seeking_talent = True if 'seeking_talent' in request.form else False 
+    venue.seeking_description = request.form['seeking_description']
 
     db.session.commit()
   except: 
@@ -387,10 +387,10 @@ def edit_venue_submission(venue_id):
     flash(f'An error occurred. Venue could not be changed.')
   if not error: 
     flash(f'Venue was successfully updated!')
-  return redirect(url_for('show_venue', venue_id=venue_id))
+  return redirect(url_for('shows_venue', venue_id=venue_id))
 
       
-  return redirect(url_for('show_venue', venue_id=venue_id))
+  return redirect(url_for('shows_venue', venue_id=venue_id))
 
 #  Create Artist
 #  ----------------------------------------------------------------
